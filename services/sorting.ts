@@ -71,10 +71,13 @@ export const generateSelectionSortTrace = (inputArray: number[]): TraceStep[] =>
   for (let i = 0; i < arr.length; i++) {
     let min = i;
     for (let j = i + 1; j < arr.length; j++) {
+      buffer.addStep(StepType.COMPARE, [min, j], `Comparing ${arr[min]} with ${arr[j]}`, null, 0);
       if (arr[j] < arr[min]) min = j;
     }
-    [arr[i], arr[min]] = [arr[min], arr[i]];
-    buffer.addStep(StepType.SWAP, [i, min], `Swapping min element to index ${i}`, null, 0);
+    if (i !== min) {
+      [arr[i], arr[min]] = [arr[min], arr[i]];
+      buffer.addStep(StepType.SWAP, [i, min], `Swapping min element ${arr[min]} to index ${i}`, null, 0);
+    }
   }
   return buffer.getSteps();
 };
@@ -104,12 +107,25 @@ export const generateMergeSortTrace = (inputArray: number[]): TraceStep[] => {
     const R = arr.slice(m + 1, r + 1);
     let i = 0, j = 0, k = l;
     while (i < L.length && j < R.length) {
-      if (L[i] <= R[j]) arr[k++] = L[i++];
-      else arr[k++] = R[j++];
-      buffer.addStep(StepType.UPDATE_VALUE, [k-1], `Merging values`, arr[k-1], 0);
+      buffer.addStep(StepType.COMPARE, [l + i, m + 1 + j], `Comparing ${L[i]} with ${R[j]}`, null, 0);
+      if (L[i] <= R[j]) {
+        arr[k] = L[i++];
+      } else {
+        arr[k] = R[j++];
+      }
+      buffer.addStep(StepType.UPDATE_VALUE, [k], `Placing ${arr[k]} at index ${k}`, arr[k], 0);
+      k++;
     }
-    while (i < L.length) arr[k++] = L[i++];
-    while (j < R.length) arr[k++] = R[j++];
+    while (i < L.length) {
+      arr[k] = L[i++];
+      buffer.addStep(StepType.UPDATE_VALUE, [k], `Placing remaining ${arr[k]}`, arr[k], 0);
+      k++;
+    }
+    while (j < R.length) {
+      arr[k] = R[j++];
+      buffer.addStep(StepType.UPDATE_VALUE, [k], `Placing remaining ${arr[k]}`, arr[k], 0);
+      k++;
+    }
   };
   const sort = (l: number, r: number) => {
     if (l >= r) return;
@@ -127,18 +143,24 @@ export const generateHeapSortTrace = (inputArray: number[]): TraceStep[] => {
   const arr = [...inputArray];
   const heapify = (n: number, i: number) => {
     let largest = i, l = 2*i+1, r = 2*i+2;
-    if (l < n && arr[l] > arr[largest]) largest = l;
-    if (r < n && arr[r] > arr[largest]) largest = r;
+    if (l < n) {
+      buffer.addStep(StepType.COMPARE, [largest, l], `Comparing ${arr[largest]} with left child ${arr[l]}`, null, 0);
+      if (arr[l] > arr[largest]) largest = l;
+    }
+    if (r < n) {
+      buffer.addStep(StepType.COMPARE, [largest, r], `Comparing ${arr[largest]} with right child ${arr[r]}`, null, 0);
+      if (arr[r] > arr[largest]) largest = r;
+    }
     if (largest !== i) {
       [arr[i], arr[largest]] = [arr[largest], arr[i]];
-      buffer.addStep(StepType.SWAP, [i, largest], `Heapify swapping`, null, 0);
+      buffer.addStep(StepType.SWAP, [i, largest], `Heapify: swapping ${arr[largest]} with ${arr[i]}`, null, 0);
       heapify(n, largest);
     }
   };
   for (let i = Math.floor(arr.length / 2) - 1; i >= 0; i--) heapify(arr.length, i);
   for (let i = arr.length - 1; i > 0; i--) {
     [arr[0], arr[i]] = [arr[i], arr[0]];
-    buffer.addStep(StepType.SWAP, [0, i], `Extracting max`, null, 0);
+    buffer.addStep(StepType.SWAP, [0, i], `Extracting max ${arr[i]}`, null, 0);
     heapify(i, 0);
   }
   return buffer.getSteps();

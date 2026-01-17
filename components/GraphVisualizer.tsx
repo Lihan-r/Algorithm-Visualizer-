@@ -77,8 +77,10 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({ data, steps, c
 
         {/* Edges */}
         {data.edges.map((edge) => {
-          const fromNode = data.nodes.find(n => n.id === edge.from)!;
-          const toNode = data.nodes.find(n => n.id === edge.to)!;
+          const fromNode = data.nodes.find(n => n.id === edge.from);
+          const toNode = data.nodes.find(n => n.id === edge.to);
+          if (!fromNode || !toNode) return null;
+
           const edgeId = `${edge.from}-${edge.to}`;
           const isActive = state.activeEdges.has(edgeId);
           const isPath = state.pathEdges.has(edgeId);

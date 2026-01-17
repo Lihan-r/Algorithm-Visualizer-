@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
-import { 
-  AlgorithmCategory, 
-  AlgorithmMetadata, 
-  StepType 
+import {
+  AlgorithmCategory,
+  AlgorithmMetadata,
+  StepType,
+  TraceStep
 } from './types';
 import { ALGORITHMS, INITIAL_ARRAY_SIZE, DEFAULT_GRAPH } from './constants';
 import { 
@@ -30,7 +31,7 @@ const App: React.FC = () => {
   const [selectedAlgo, setSelectedAlgo] = useState<AlgorithmMetadata>(ALGORITHMS[0]);
   const [arraySize, setArraySize] = useState<number>(INITIAL_ARRAY_SIZE);
   const [inputArray, setInputArray] = useState<number[]>([]);
-  const [steps, setSteps] = useState<any[]>([]);
+  const [steps, setSteps] = useState<TraceStep[]>([]);
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -73,7 +74,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     initializeData();
-  }, [selectedAlgo.id, arraySize]);
+  }, [initializeData]);
 
   const {
     currentStepIndex,
@@ -141,7 +142,10 @@ const App: React.FC = () => {
           <select 
             className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer hover:border-white/20"
             value={selectedAlgo.id}
-            onChange={(e) => setSelectedAlgo(ALGORITHMS.find(a => a.id === e.target.value)!)}
+            onChange={(e) => {
+              const algo = ALGORITHMS.find(a => a.id === e.target.value);
+              if (algo) setSelectedAlgo(algo);
+            }}
           >
             {ALGORITHMS.map(algo => (
               <option key={algo.id} value={algo.id}>{algo.name}</option>

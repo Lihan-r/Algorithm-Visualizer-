@@ -56,15 +56,14 @@ export const SortingVisualizer: React.FC<SortingVisualizerProps> = ({ initialArr
     }
 
     return { array: arr, activeIndices: active, pivotIndex: pivot, sortedIndices: sorted, foundIndex };
-  }, [initialArray, steps, currentStepIndex]) as SortingState & { foundIndex: number | null };
+  }, [initialArray, steps, currentStepIndex]);
 
-  const maxVal = Math.max(...initialArray);
+  const maxVal = initialArray.length > 0 ? Math.max(...initialArray) : 1;
 
   return (
     <div className="flex items-end justify-center gap-1 w-full h-[400px] px-4">
       {state.array.map((val, idx) => {
         let colorClass = "bg-zinc-700";
-        // @ts-ignore - accessing custom property added in useMemo
         if (state.foundIndex === idx) colorClass = "bg-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.8)] scale-110 z-10";
         else if (state.pivotIndex === idx) colorClass = "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.5)] scale-105";
         else if (state.activeIndices.has(idx)) colorClass = "bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.5)]";
